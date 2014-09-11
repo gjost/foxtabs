@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+DESCRIPTION = """Lists titles and URLs of current Firefox tabs"""
+
+EPILOG = ""
+
+import argparse
+import sys
+
+import foxtabs
+
+def main():
+
+    parser = argparse.ArgumentParser(
+        description=DESCRIPTION,
+        epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-H', '--html', action='store_const', const=1, help='Output HTML.')
+    parser.add_argument('-t', '--text', action='store_const', const=1, help='Output text.')
+    args = parser.parse_args()
+    
+    if args.html and args.text:
+        print('Cannot print both text and html. You must choose!')
+        sys.exit(1)
+    
+    ini_path = foxtabs.profile_ini_path()
+    config = foxtabs.read_profiles(ini_path)
+    profile = foxtabs.profile_name(config)
+    sspath = foxtabs.sessionstore_path(profile)
+    data = foxtabs.load_sessionstore(sspath)
+    entries = foxtabs.extract_entries(data)
+    out = 'Choose text or html'
+    if args.html:
+        out = foxtabs.html(sspath, entries)
+    elif args.text:
+        out = foxtabs.text(sspath, entries)
+    print(out)
+
+if __name__ == '__main__':
+    main()
